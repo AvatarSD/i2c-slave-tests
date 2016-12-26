@@ -4,7 +4,7 @@
 #include <idcells.h>
 #include <server.h>
 
-#define MULTICAST_ADDR 0x30
+#define MULTICAST_ADDR 0x05
 #define INIT_ADDR 0x21
 
 #define VER(MAJOR, MINOR) ((uint16_t)((MAJOR << 8)|(MINOR)))
@@ -72,7 +72,7 @@ class Settings : public ISettingsGeneral
 public:
     Settings() :
         guid{'b', 'y', ' ', 'S', '.', 'D', '.', ' ',
-             0x68, 0x14, 0xfc, 0xc4, 0x73, 0x28, 0xf4, 0x42
+             0x73, 0xf4, 0x23, 0x75, 0x96, 0xcd, 0x4b, 0xe5
             }, name DEV_NAME {
     }
     uint8_t getDeviceGUID(uint8_t pos) const
@@ -97,15 +97,31 @@ private:
     char name[DEVNAME_SIZE];
 };
 
+class SlaveAddressKeeper : public ISlaveAddress
+{
+public:
+    SlaveAddressKeeper(I2CAddress addr) : addr(addr) {}
+    void setAddress(I2CAddress addr)
+    {
+        this->addr = addr;
+    }
+    I2CAddress getAddress() const
+    {
+        return this->addr;
+    }
+private:
+    I2CAddress addr;
+};
+
 int main(int argc, char * argv[])
 {
 
     Settings settings;
     ListTest  memory(&settings);
+    SlaveAddressKeeper addr(INIT_ADDR);
 
 
     I2CSlaveServer server(&memory);
-    SlaveAddressKeeper addr(INIT_ADDR);
     UsiTwiSlave network(USI::instance(), &server, &addr, MULTICAST_ADDR);
     memory.setNetworkObject(&network);
     network.init();
